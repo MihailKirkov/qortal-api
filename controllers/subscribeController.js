@@ -1,21 +1,40 @@
-const sendEmail = require('../services/sendEmail');
+import isEmail from 'validator/lib/isEmail.js';
+import sendEmail from '../services/sendEmail.js';  // ES module import
+import { saveSubscriber } from '../services/firebaseServices.js';
 
 const handleSubscription = async (req, res) => {
-    const { name, email, message } = req.body;
-    if (!name || !email || !message) {
-        return res.status(400).json({ error: 'Missing fields' });
+    const { name, email } = req.body;
+    if (!name || !email) {
+        return res.status(400).json({ error: 'Missing name or email!' });
     }
 
-    // TODO: Save to DB here
-    console.log('Saving user:', { name, email, message });
+    // Additional email validation
+    if (!isEmail(email)) {
+        return res.status(400).json({ error: 'Invalid email format!' });
+    }
 
     try {
-        await sendEmail(name, email);
-        res.status(200).json({ message: 'Subscription successful' });
+        // Step 1: Save subscriber to Firebase (must succeed)
+        await saveSubscriber(name, email);
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Email failed to send' });
+        console.error('[Subscription Error] Failed to save subscriber:', error);
+        return res.status(500).json({ error: 'Failed to process subscription. Please try again later.' });
     }
+
+    let emailSent = true;
+    try {
+        // Step 2: Send confirmation email (non-blocking)
+        await sendEmail(name, email);
+    } catch (error) {
+        console.error('[Email Error on Subscription] Failed to send email:', error);
+        emailSent = false;
+    }
+
+    
+    return res.status(emailSent ? 200 : 202).json({
+        message: 'Subscription successful.',
+        warning: !emailSent ? 'Failed to send subscription email.' : undefined
+    });
 };
 
-module.exports = { handleSubscription };
+export { handleSubscription };  // ES module export
