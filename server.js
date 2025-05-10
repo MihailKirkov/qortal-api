@@ -1,13 +1,16 @@
 import dotenv from 'dotenv';
+dotenv.config();  // Load environment variables
 import express from 'express';
 import bodyParser from 'body-parser';
 import subscribeRoutes from './routes/subscribeRoutes.js';  // .js is important
 import blurbRoutes from './routes/blurbRoutes.js';  // .js is important
+// import { initializeFirebaseApp } from './config/firebaseConfig.js';
 
-dotenv.config();  // Load environment variables
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+// initializeFirebaseApp();
+
 
 app.use(bodyParser.json());
 
