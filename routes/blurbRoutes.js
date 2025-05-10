@@ -3,6 +3,6 @@ import { handleAddBlurb } from '../controllers/blurbController.js';
 
 const router = express.Router();
 
-router.post('/', handleAddBlurb);
+router.put('/', handleAddBlurb);
 
 export default router;  // ES module export
