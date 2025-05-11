@@ -1,7 +1,6 @@
 import validator from 'validator';
 
-
-// Utility function to validate email
+// Utility function to check if a string is a valid email
 const isEmail = (email: string) => {
     return validator.isEmail(email);
 };

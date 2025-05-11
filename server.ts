@@ -1,21 +1,21 @@
 import dotenv from 'dotenv';
-dotenv.config();  // Load environment variables
+dotenv.config();
 import express, {Express, Request, Response} from 'express';
 import bodyParser from 'body-parser';
-import subscribeRoutes from './routes/subscribeRoutes';  // .js is important
-import blurbRoutes from './routes/blurbRoutes';  // .js is important
-// import { initializeFirebaseApp } from './config/firebaseConfig.js';
-
+import subscribeRoutes from './routes/subscribeRoutes';
+import blurbRoutes from './routes/blurbRoutes'; 
+import { handleGetAllBlurbs } from './controllers/blurbController';
+import { authenticateWithToken } from './middleware/authMiddleware';
 
 const app: Express = express();
 const PORT = process.env.PORT || 3000;
-// initializeFirebaseApp();
 
 
 app.use(bodyParser.json());
 
-app.use('/api/subscribe', subscribeRoutes); // recieves {name, email}. saves user to db and sends an email with ebook link
+app.use('/api/subscribe', subscribeRoutes);
 app.use('/api/submit-blurb', blurbRoutes)
+app.get('/api/get-blurbs', authenticateWithToken, handleGetAllBlurbs);
 
 app.get('/', (req: Request, res: Response) => {
     res.send('API is running! ')
