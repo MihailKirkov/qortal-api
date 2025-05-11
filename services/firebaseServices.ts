@@ -1,6 +1,14 @@
 import { db } from '../config/firebaseConfig.js';
 import { collection, query, doc, where, getDocs, addDoc, Timestamp, updateDoc } from 'firebase/firestore';
 
+interface Subscriber {
+    name: string;
+    email: string;
+    timestamp: Timestamp;
+    blurb: string;
+}
+
+
 const COLLECTIONS = {
     SUBSCRIBERS: 'subscribers',
 };
@@ -12,7 +20,7 @@ const COLLECTIONS = {
  * @param {string} params.email
  * @returns {Promise<{ success: boolean, data: Object }>}
 */
-export const saveSubscriber = async ({ name, email }) => {
+export const saveSubscriber = async ({ name, email }: { name: string; email: string }) => {
     const timestamp = Timestamp.fromDate(new Date());
     const subscriberData = {
         name,
@@ -38,7 +46,7 @@ export const saveSubscriber = async ({ name, email }) => {
  * @param {string} params.blurb
  * @returns {Promise<{ success: boolean, message: string }>}
  */
-export const addBlurbByEmail = async ({ email, blurb }) => {
+export const addBlurbByEmail = async ({ email, blurb }: { email: string; blurb: string }) => {
     try {
         const subscriberData = await getSubscriberByEmail(email);
         
@@ -68,7 +76,7 @@ export const addBlurbByEmail = async ({ email, blurb }) => {
  * @param {string} email - The email of the subscriber.
  * @returns {Promise<Object>} - The subscriber data.
  */
-const getSubscriberByEmail = async (email) => {
+const getSubscriberByEmail = async (email: string) => {
     const q = query(collection(db, 'subscribers'), where('email', '==', email));
     const querySnapshot = await getDocs(q);
     if (!querySnapshot.empty) {
