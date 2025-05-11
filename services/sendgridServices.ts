@@ -1,6 +1,6 @@
 // services/sendgridServices.ts
 
-import { sgMail, SENDGRID_SENDER_EMAIL } from '../config/sendgridConfig';
+import { sgMail, SENDGRID_SENDER_EMAIL, sgClient, SENDGRID_LIST_ID } from '../config/sendgridConfig';
 
 interface SendEmailParams {
     to: string;
@@ -13,46 +13,59 @@ interface SendEmailParams {
  * Sends an email using SendGrid's dynamic templates
  * @param params - Email details
  */
-const sendEmail = async ({
+export const sendEmail = async ({
     to,
     subject,
     templateId,
     dynamicTemplateData,
 }: SendEmailParams): Promise<{ success: boolean }> => {
+    console.log('sendEmail sender:', SENDGRID_SENDER_EMAIL);
+    if (!SENDGRID_SENDER_EMAIL) {
+        return {success: false};
+    }
     const msg = {
-        to: 'test@example.com', // Change to your recipient
-        from: 'test@example.com', // Change to your verified sender
-        subject: 'Sending with SendGrid is Fun',
-        text: 'and easy to do anywhere, even with Node.js',
-        html: '<strong>and easy to do anywhere, even with Node.js</strong>',
-        }
-        sgMail
-        .send(msg)
-        .then(() => {
-            console.log('Email sent')
-        })
-        .catch((error) => {
-            console.error(error)
-            return {success: false};
-        })
+        to: to,
+        from: SENDGRID_SENDER_EMAIL,
+        subject: subject,
+        templateId: templateId,
+        dynamic_template_data: dynamicTemplateData,
+    };
 
-    return {success: true};
-    // const msg = {
-    //     to,
-    //     from: SENDGRID_SENDER_EMAIL as string,
-    //     subject,
-    //     templateId,
-    //     dynamic_template_data: dynamicTemplateData,
-    // };
+    try {
+        const [response] = await sgMail.send(msg); // returns an array: [response, body?]
+        console.log('SendGrid response statusCode:', response.statusCode);
+        console.log('SendGrid response headers:', response.headers);
+        console.log('Email payload:', msg);
+        return { success: true };
+    } catch (error: any) {
+        console.error('[SendGrid Email Error]', error?.response?.body || error);
+        return { success: false };
+    }
 
-    // try {
-    //     await sgMail.send(msg);
-    //     console.log(`Email sent to ${to}`);
-    //     return { success: true };
-    // } catch (error) {
-    //     console.error('Error sending email:', error);
-    //     throw new Error('Failed to send email.');
-    // }
 };
 
-export default sendEmail;
+
+export const addToSendGridList = async ( email: string ): Promise<void> => {
+    const requestBody = {
+        list_ids: [SENDGRID_LIST_ID],
+        contacts: [{ email }],
+    };
+
+    try {
+        const [response, body] = await sgClient.request({
+            method: 'PUT',
+            url: '/v3/marketing/contacts',
+            body: requestBody,
+        });
+
+        if (response.statusCode === 202) {
+            console.log('[SendGrid List] Subscriber added successfully');
+        } else {
+            console.error('[SendGrid List] Failed to add subscriber:', body);
+            throw new Error('Failed to add subscriber to SendGrid list');
+        }
+    } catch (error) {
+        console.error('[SendGrid List] Error:', error);
+        throw new Error('Failed to add subscriber to SendGrid list');
+    }
+};

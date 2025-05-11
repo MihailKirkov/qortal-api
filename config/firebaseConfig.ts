@@ -23,7 +23,8 @@ const firebaseConfig = {
     measurementId: FIREBASE_MEASUREMENT_ID,
 };
 
+// Initialize Firebase app and Firestore database service
 const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+const db = getFirestore(app); // Firestore instance
 
 export { db };

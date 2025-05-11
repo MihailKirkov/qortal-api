@@ -1,14 +1,6 @@
 import { db } from '../config/firebaseConfig.js';
 import { collection, query, doc, where, getDocs, addDoc, Timestamp, updateDoc } from 'firebase/firestore';
 
-interface Subscriber {
-    name: string;
-    email: string;
-    timestamp: Timestamp;
-    blurb: string;
-}
-
-
 const COLLECTIONS = {
     SUBSCRIBERS: 'subscribers',
 };
@@ -84,5 +76,29 @@ const getSubscriberByEmail = async (email: string) => {
         return { id: querySnapshot.docs[0].id, ...querySnapshot.docs[0].data() };
     } else {
         throw new Error('Subscriber not found.');
+    }
+};
+
+/**
+ * Retrieves all subscribers with name and blurb.
+ * @returns {Promise<Array<{ name: string; blurb: string }>>}
+ */
+export const getAllBlurbs = async (): Promise<{ name: string; blurb: string }[]> => {
+    try {
+        const subscriberRef = collection(db, COLLECTIONS.SUBSCRIBERS);
+        const snapshot = await getDocs(subscriberRef);
+
+        const subscribers = snapshot.docs.map(doc => {
+            const data = doc.data();
+            return {
+                name: data.name || '',
+                blurb: data.blurb || '',
+            };
+        });
+
+        return subscribers;
+    } catch (error) {
+        console.error('[Firestore Error] Failed to fetch subscribers:', error);
+        throw new Error('Could not retrieve subscribers.');
     }
 };
