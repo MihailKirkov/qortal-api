@@ -20,7 +20,6 @@ const handleSubscription = async (
     req: Request<{}, {}, SubscribeRequestBody>,
     res: Response
 ): Promise<void> => {
-    console.log('handleSubscription', req.body)
     const { name, email } = req.body;
 
     if (!name || !email) {
@@ -35,7 +34,7 @@ const handleSubscription = async (
     try { // Sending the initial eBook delivery email
         await sendEmail({
             to: email,
-            subject:'Thanks for joining! Here’s your eBook',
+            subject:'Your Qortal Ebook is here. Thanks for signing up!',
             templateId: SENDGRID_EBOOK_DELIVERY_EMAIL_ID as string,
             dynamicTemplateData:{first_name:name}}
         );

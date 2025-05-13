@@ -19,23 +19,21 @@ export const sendEmail = async ({
     templateId,
     dynamicTemplateData,
 }: SendEmailParams): Promise<{ success: boolean }> => {
-    console.log('sendEmail sender:', SENDGRID_SENDER_EMAIL);
     if (!SENDGRID_SENDER_EMAIL) {
         return {success: false};
     }
     const msg = {
         to: to,
         from: SENDGRID_SENDER_EMAIL,
-        subject: subject,
         templateId: templateId,
-        dynamic_template_data: dynamicTemplateData,
+        dynamic_template_data: {...dynamicTemplateData, subject:subject}
     };
 
     try {
         const [response] = await sgMail.send(msg); // returns an array: [response, body?]
-        console.log('SendGrid response statusCode:', response.statusCode);
-        console.log('SendGrid response headers:', response.headers);
-        console.log('Email payload:', msg);
+        // console.log('SendGrid response statusCode:', response.statusCode);
+        // console.log('SendGrid response headers:', response.headers);
+        // console.log('Email payload:', msg);
         return { success: true };
     } catch (error: any) {
         console.error('[SendGrid Email Error]', error?.response?.body || error);
